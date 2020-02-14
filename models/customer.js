@@ -53,6 +53,13 @@ class Customer {
     return new Customer(customer);
   }
 
+  /** get full name for this customer. */
+  /** do not need async because not querying the db. */
+  getFullName() {
+    const fullName = `${this.firstName} ${this.lastName}`;
+    return fullName;
+  }
+
   /** get all reservations for this customer. */
 
   async getReservations() {
