@@ -18,6 +18,17 @@ router.get("/", async function (req, res, next) {
   }
 });
 
+/** show list of top 10 customers. */
+router.get("/top10", async function (req, res, next) {
+  try {
+    const customers = await Customer.getTopTen();
+    // console.log(customers);
+    return res.render("customer_top10.html", {customers});
+  } catch (err) {
+    return next(err);
+  }
+});
+
 /** Form to add a new customer. */
 
 router.get("/add/", async function (req, res, next) {
@@ -46,6 +57,30 @@ router.post("/add/", async function (req, res, next) {
   }
 });
 
+///****** MOVED TO THE TOP SINCE THE MORE SPECIFIC THE ROUTE IS, IT SHOULD BE ON TOP **********
+router.get("/search", async function (req, res, next) {
+
+    try {
+      const query = req.query.name.toLowerCase();
+      const allCustomers = await Customer.all();
+      let matchedCustomers = [];
+
+    //loop through allCustomers + check their fn and ln
+    for (let customer of allCustomers) {
+      let fullName = customer.getFullName().toLowerCase();
+      if (fullName.includes(query)) {
+        matchedCustomers.push(customer);
+      }
+    }
+    //create a template for the matched customers
+    res.render("customer_match.html", { matchedCustomers })
+
+  } catch (err) {
+    return next(err);
+  }
+});
+
+
 /** Show a customer, given their ID. */
 
 router.get("/:id/", async function (req, res, next) {
@@ -60,25 +95,6 @@ router.get("/:id/", async function (req, res, next) {
   }
 });
 
-router.get("/search", async function (req, res, next) {
-  try {
-    const search = req.body.search
-    const allCustomers = await Customer.all()
-    let matchedCustomers = []
-
-    //loop through allCustomers + check their fn and ln
-    for (let customer of allCustomers) {
-      let fullName = customer.getFullName()
-      if (search === fullName) {
-        matchedCustomers.push(fullName)
-      }
-    }
-    //create a template for the matched customers 
-
-  } catch (err) {
-    return next(err);
-  }
-})
 
 /** Show form to edit a customer. */
 

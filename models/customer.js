@@ -4,24 +4,24 @@ const db = require("../db");
 const Reservation = require("./reservation");
 
 /** Customer of the restaurant. */
-
 class Customer {
-  constructor({ id, firstName, lastName, phone, notes }) {
+  constructor({ id, first_name, last_name, phone, notes }) {
     this.id = id;
-    this.firstName = firstName;
-    this.lastName = lastName;
+    this.firstName = first_name;
+    this.lastName = last_name;
     this.phone = phone;
     this.notes = notes;
   }
 
   /** find all customers. */
+  // We have removed the AS aliases because it affected the results at the customer class
 
   static async all() {
     const results = await db.query(
-      `SELECT id, 
-         first_name AS "firstName",  
-         last_name AS "lastName", 
-         phone, 
+      `SELECT id,
+         first_name,
+         last_name,
+         phone,
          notes
        FROM customers
        ORDER BY last_name, first_name`
@@ -33,11 +33,11 @@ class Customer {
 
   static async get(id) {
     const results = await db.query(
-      `SELECT id, 
-         first_name AS "firstName",  
-         last_name AS "lastName", 
-         phone, 
-         notes 
+      `SELECT id,
+         first_name,
+         last_name,
+         phone,
+         notes
         FROM customers WHERE id = $1`,
       [id]
     );
@@ -53,6 +53,24 @@ class Customer {
     return new Customer(customer);
   }
 
+
+  static async getTopTen() {
+    const results = await db.query(
+      `SELECT c.id, first_name , last_name,
+      phone, c.notes,
+      COUNT(first_name) as numOfReservations
+      FROM customers AS c LEFT JOIN reservations AS r ON c.id = r.customer_id
+       GROUP BY c.id, first_name, last_name, phone, c.notes
+       ORDER BY numOfReservations DESC LIMIT 10`
+    );
+
+    // let newRows = results.rows.map(row => delete row["numofreservations"]);
+    // console.log("******* RESULTS*********", results.rows);
+    let finalResult =  results.rows.map(c => new Customer(c));
+    console.log("*********final result**********", finalResult);
+    return finalResult;
+  }
+
   /** get full name for this customer. */
   /** do not need async because not querying the db. */
   getFullName() {
@@ -65,6 +83,7 @@ class Customer {
   async getReservations() {
     return await Reservation.getReservationsForCustomer(this.id);
   }
+
 
   /** save this customer. */
 
